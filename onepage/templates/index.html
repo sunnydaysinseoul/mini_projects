@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <meta property="og:title" content="행운의 조개껍데기"/>
+    <meta property="og:description" content="행운이 찾아와요 :)"/>
+    <meta property="og:image" content="{{ url_for('static', filename='ogimage.jpg') }}"/>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+    <title>나만의 쇼핑몰</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Nanum Myeongjo', serif;
+        }
+
+        .itemImg {
+            width: 600px;
+            height: 600px;
+
+            background-image: url("https://static.scientificamerican.com/sciam/cache/file/CDA9C7AB-ACF1-4D7A-92D04BEC5395D606_source.jpg?w=590&h=800&ED70B2DF-4820-48F8-8BC354E623309CF9");
+            background-position: center;
+            background-size: cover;
+        }
+
+        h1, h4 {
+            display: inline;
+        }
+
+        .headBox {
+            width: 600px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        .inputBox {
+            width: 600px;
+        }
+
+        .btn-order {
+            margin: auto;
+            /*마진 오토가 안먹힐때는 블록속성을 먹여보자*/
+            display: block;
+        }
+
+        .wrap {
+            /*마진이 안먹힌이유-width값을 안줘서 가로끝까지가 한박스였던듯*/
+            width: 600px;
+            margin: 100px auto 100px auto;
+        }
+    </style>
+
+    <!--    자바스크립트 쓰기-->
+    <script>
+        function orderComp() {
+
+            //input box에서 정보 가져오기
+            let name = $('#input-name').val();
+            let ammount = $('#input-ammount').val();
+            let address = $('#input-address').val();
+            let phone = $('#input-phone').val();
+
+            $.ajax({
+                type: "POST",
+                url: "/order",
+                data: {name_give: name, ammount_give: ammount, address_give: address, phone_give: phone},
+                success: function (response) {
+                    if (response["result"] == "success") {
+
+                        alert(response['msg']);
+                        window.location.reload();
+                    }
+                }
+            })
+        }
+
+        $.ajax({
+            type: "GET",
+            url: "https://api.manana.kr/exchange/rate.json",
+            data: {},
+
+            success: function (response) {
+
+                let won_rate = response[1]['rate'];
+
+                $(document).ready(function () {
+                    $('.krw_rate').text(won_rate);
+                    //    .krw_rate 말고 #krw_rate써도 됨
+                });
+            }
+        });
+
+
+        $(document).ready(function () {
+            viewOrders();
+        })
+
+        function viewOrders() {
+            // 1. 리뷰 목록을 서버에 요청하기
+            // 2. 요청 성공 여부 확인하기
+            // 3. 요청 성공했을 때 리뷰를 올바르게 화면에 나타내기
+            $.ajax({
+                type: "GET",
+                url: "/order",
+                data: {},
+                success: function (response) {
+                    if (response["result"] == "success") {
+                        let all_orders = response['orders']
+                        for (let i = 0; i < all_orders.length; i++) {
+                            let name = all_orders[i]['name'];
+                            let ammount = all_orders[i]['ammount'];
+                            let address = all_orders[i]['address'];
+                            let phone = all_orders[i]['phone'];
+                            console.log(name, ammount, address, phone)
+
+
+                            let temp_html = `<tr>
+                                              <th scope="row">${i + 1}</th>
+                                              <td>${name}</td>
+                                              <td>${ammount}</td>
+                                              <td>${address}</td>
+                                              <td>${phone}</td>
+                                            </tr>`
+                            $('#orders-list').append(temp_html)
+                        }
+                    }
+                }
+            })
+        }
+
+    </script>
+</head>
+<body>
+
+<div class="wrap">
+
+    <div class="itemImg"></div>
+    <div class="headBox">
+        <h1>행운의 조개껍데기</h1>
+        <h4> 가격:5,000원 / 박스</h4>
+        <p> 머리맡에 두면 행운이 생기는 특별한 조개껍데기입니다.</p>
+    </div>
+    <div>
+        <p>달러-원 환율 : <span class="krw_rate">로딩중</span></p>
+    </div>
+    <div class="inputBox">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">주문자 성함</span>
+            </div>
+            <input type="text" id="input-name" class="form-control" aria-label="Default"
+                   aria-describedby="inputGroup-sizing-default">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <label class="input-group-text">수량</label>
+            </div>
+            <select class="custom-select" id="input-ammount">
+                <option selected>---수량을 선택해주세요---</option>
+                <option value="1">1박스</option>
+                <option value="2">2박스</option>
+                <option value="3">3박스</option>
+                <option value="4">4박스</option>
+                <option value="5">5박스</option>
+            </select>
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">주소</span>
+            </div>
+            <input type="text" id="input-address" class="form-control" aria-label="Default"
+                   aria-describedby="inputGroup-sizing-default">
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">전화번호</span>
+            </div>
+            <input type="number" id="input-phone" class="form-control" aria-label="Default"
+                   aria-describedby="inputGroup-sizing-default" placeholder="숫자만 입력해주세요">
+        </div>
+
+        <button type="button" onclick="orderComp()" class="btn btn-success btn-order">주문하기</button>
+
+    </div>
+    <div>
+        <p></p>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">주문번호</th>
+                <th scope="col">이름</th>
+                <th scope="col">주문량</th>
+                <th scope="col">주소</th>
+                <th scope="col">전화번호</th>
+            </tr>
+            </thead>
+            <tbody id="orders-list">
+
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>
